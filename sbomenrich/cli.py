@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import os
 import platform
 import sys
 import textwrap
@@ -91,8 +92,16 @@ def main(argv=None):
     # Must gave both a SBOM and an enrichment file
     if sbom_name == "" or enrich_file == "":
         print ("[ERROR] Must specify a SBOM and enrichment file")
+        sys.exit(1)
 
     # Check the SBOM and enrichment file exist
+    if not os.path.exists(sbom_name) or os.path.getsize(sbom_name) == 0:
+        print(f"[ERROR] SBOM file {sbom_name} not found or empty")
+        sys.exit(1)
+
+    if not os.path.exists(enrich_file) or os.path.getsize(enrich_file) == 0:
+        print(f"[ERROR] Enrichment file {enrich_file} not found or empty")
+        sys.exit(1)
 
     # Ensure format is aligned with type of SBOM
     bom_format = args["format"]
@@ -108,10 +117,9 @@ def main(argv=None):
         print("Format:", bom_format)
         print("Output file:", args["output_file"])
 
-    sbom_enricher = SBOMEnricher(enrich_file=args["enrich"])
+    sbom_enricher = SBOMEnricher(enrich_file=args["enrich"], debug=args["debug"])
     sbom_enricher.process_SBOM(sbom_file=args["input_file"])
-    sbom_enricher.generate_enriched_SBOM(bom_format)
-
+    sbom_enricher.generate_enriched_SBOM(sbom_file=args['output_file'], format=bom_format)
     return 0
 
 
